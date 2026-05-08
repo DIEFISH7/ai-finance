@@ -9,37 +9,25 @@ def chat(message):
     import os
     api_key = os.environ.get("GROQ_API_KEY", "")
     if api_key:
-        try:
-            response = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "llama3-8b-8192",
-                    "messages": [{"role": "user", "content": message}]
-                }
-            )
-            data = response.json()
-            if "choices" in data:
-    return data["choices"][0]["message"]["content"]
-return str(data)
-        except Exception as e:
-            return f"分析出错：{str(e)}"
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama3-8b-8192",
+                "messages": [{"role": "user", "content": message}]
+            }
+        )
+        data = response.json()
+        return data.get("choices", [{}])[0].get("message", {}).get("content", str(data))
     else:
-        try:
-            response = requests.post(
-                "http://localhost:11434/api/generate",
-                json={
-                    "model": "nous-hermes2",
-                    "prompt": message,
-                    "stream": False
-                }
-            )
-            return response.json()["response"]
-        except Exception as e:
-            return f"本地AI连接失败：{str(e)}"
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "nous-hermes2", "prompt": message, "stream": False}
+        )
+        return response.json()["response"]
 # 页面配置
 st.set_page_config(page_title="AI理财助手", page_icon="💰", layout="wide")
 st.title("💰 我的AI理财助手")
