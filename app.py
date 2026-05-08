@@ -22,7 +22,9 @@ def chat(message):
                 }
             )
             data = response.json()
-            return data["choices"][0]["message"]["content"]
+            if "choices" in data:
+    return data["choices"][0]["message"]["content"]
+return str(data)
         except Exception as e:
             return f"分析出错：{str(e)}"
     else:
