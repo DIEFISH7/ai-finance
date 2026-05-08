@@ -9,33 +9,35 @@ def chat(message):
     import os
     api_key = os.environ.get("GROQ_API_KEY", "")
     if api_key:
-        response = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "llama3-8b-8192",
-                "messages": [{"role": "user", "content": message}]
-            }
-        )
-        data = response.json()
-if "choices" in data:
-    return data["choices"][0]["message"]["content"]
-else:
-    return f"API错误：{data.get('error', {}).get('message', '未知错误')}"
+        try:
+            response = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "llama3-8b-8192",
+                    "messages": [{"role": "user", "content": message}]
+                }
+            )
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+        except Exception as e:
+            return f"分析出错：{str(e)}"
     else:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "nous-hermes2",
-                "prompt": message,
-                "stream": False
-            }
-        )
-        return response.json()["response"]
-
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "nous-hermes2",
+                    "prompt": message,
+                    "stream": False
+                }
+            )
+            return response.json()["response"]
+        except Exception as e:
+            return f"本地AI连接失败：{str(e)}"
 # 页面配置
 st.set_page_config(page_title="AI理财助手", page_icon="💰", layout="wide")
 st.title("💰 我的AI理财助手")
