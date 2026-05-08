@@ -20,7 +20,11 @@ def chat(message):
                 "messages": [{"role": "user", "content": message}]
             }
         )
-        return response.json()["choices"][0]["message"]["content"]
+        data = response.json()
+if "choices" in data:
+    return data["choices"][0]["message"]["content"]
+else:
+    return f"API错误：{data.get('error', {}).get('message', '未知错误')}"
     else:
         response = requests.post(
             "http://localhost:11434/api/generate",
