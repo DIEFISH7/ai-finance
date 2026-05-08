@@ -6,15 +6,31 @@ import plotly.express as px
 from datetime import date
 
 def chat(message):
-    response = requests.post(
-        "http://localhost:11434/api/generate",
-        json={
-            "model": "nous-hermes2",
-            "prompt": message,
-            "stream": False
-        }
-    )
-    return response.json()["response"]
+    import os
+    api_key = os.environ.get("GROQ_API_KEY", "")
+    if api_key:
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "llama3-8b-8192",
+                "messages": [{"role": "user", "content": message}]
+            }
+        )
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={
+                "model": "nous-hermes2",
+                "prompt": message,
+                "stream": False
+            }
+        )
+        return response.json()["response"]
 
 # 页面配置
 st.set_page_config(page_title="AI理财助手", page_icon="💰", layout="wide")
