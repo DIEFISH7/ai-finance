@@ -236,3 +236,13 @@ with col2:
                 st.write(f"📌 {p['名称']} ({p['日期']}) — 年化{p['年化收益率']}%")
     else:
         st.write("暂无保存的方案")
+# ===== 分享引导 =====
+st.divider()
+st.markdown("""
+<div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;'>
+    <h3>💡 觉得有用？分享给朋友</h3>
+    <p>复制链接发给需要理财规划的朋友</p>
+    <h2>https://diefish7-finance.streamlit.app</h2>
+    <p>完全免费 · AI驱动 · 3分钟看懂您的资产</p>
+</div>
+""", unsafe_allow_html=True)
