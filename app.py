@@ -4,6 +4,7 @@ import json
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import date
+import os
 
 def chat(message):
     import os
@@ -16,18 +17,22 @@ def chat(message):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "llama-3.3-70b-versatile",
+                "model": "llama3-8b-8192",
                 "messages": [{"role": "user", "content": message}]
             }
         )
-        data = response.json()
-        return data.get("choices", [{}])[0].get("message", {}).get("content", str(data))
+        return response.json()["choices"][0]["message"]["content"]
     else:
         response = requests.post(
             "http://localhost:11434/api/generate",
-            json={"model": "nous-hermes2", "prompt": message, "stream": False}
+            json={
+                "model": "nous-hermes2",
+                "prompt": message,
+                "stream": False
+            }
         )
         return response.json()["response"]
+
 # 页面配置
 st.set_page_config(page_title="AI理财助手", page_icon="💰", layout="wide")
 st.title("💰 我的AI理财助手")
@@ -175,3 +180,59 @@ if analyze:
     with open("report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, ensure_ascii=False, indent=2)
     st.caption("✅ 报告已保存到 report.json")
+# ===== 每日市场简报 =====
+st.divider()
+st.subheader("📰 每日市场简报")
+
+if st.button("🔄 获取今日AI市场分析", use_container_width=True):
+    with st.spinner("AI正在分析今日市场..."):
+        news_prompt = """
+今天是2026年，请从以下角度简要分析中国股市：
+1. 沪深300近期走势如何（一句话）
+2. 影响A股的最主要因素（两点）
+3. 对普通定投投资者的建议（一句话）
+请用简洁的中文回答，总共不超过150字。
+"""
+        news_result = chat(news_prompt)
+    st.info(news_result)
+
+# ===== 保存和加载方案 =====
+st.divider()
+st.subheader("💾 我的投资方案")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    plan_name = st.text_input("方案名称", placeholder="例如：稳健型2026")
+    if st.button("保存当前方案", use_container_width=True):
+        plan = {
+            "名称": plan_name,
+            "日期": str(date.today()),
+            "总资产": total,
+            "沪深300": hs300,
+            "中证500": zz500,
+            "货币基金": money,
+            "备用金": reserve,
+            "月定投": monthly,
+            "定投年数": years,
+            "年化收益率": round(annual_rate, 1)
+        }
+        plans = []
+        if os.path.exists("plans.json"):
+            with open("plans.json", "r", encoding="utf-8") as f:
+                plans = json.load(f)
+        plans.append(plan)
+        with open("plans.json", "w", encoding="utf-8") as f:
+            json.dump(plans, f, ensure_ascii=False, indent=2)
+        st.success(f"✅ 方案「{plan_name}」已保存！")
+
+with col2:
+    if os.path.exists("plans.json"):
+        with open("plans.json", "r", encoding="utf-8") as f:
+            plans = json.load(f)
+        if plans:
+            st.write("**历史方案：**")
+            for p in plans[-3:]:
+                st.write(f"📌 {p['名称']} ({p['日期']}) — 年化{p['年化收益率']}%")
+    else:
+        st.write("暂无保存的方案")
